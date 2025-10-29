@@ -2,6 +2,7 @@
 name = "uab-rc-docs-mcp-server"
 version = "1.0.0"
 description = "MCP server for UAB Research Computing documentation"
+license = "MIT"
 authors = [
     {name = "UAB Research Computing"}
 ]
