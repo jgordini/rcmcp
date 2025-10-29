@@ -16,11 +16,11 @@ ENV UV_LINK_MODE=copy
 # Copy dependency files first for better layer caching
 COPY pyproject.toml ./
 
-# Install dependencies using uv - including smithery SDK
-RUN uv pip install --system mcp httpx smithery pydantic
+# Install dependencies using uv - including uvicorn for ASGI server
+RUN uv pip install --system mcp httpx uvicorn
 
 # Copy the server file
-COPY uab_docs_server_smithery.py ./
+COPY uab_docs_server_final.py ./
 
 # Smithery sets PORT environment variable to 8081
 ENV PORT=8081
@@ -31,5 +31,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose the port (Smithery uses 8081)
 EXPOSE 8081
 
-# Run the Smithery-compatible server
-CMD ["python", "uab_docs_server_smithery.py"]
+# Run the server
+CMD ["python", "uab_docs_server_final.py"]
