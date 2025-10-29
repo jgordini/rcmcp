@@ -1,0 +1,19 @@
+# Smithery configuration file
+# Documentation: https://smithery.ai/docs/build/project-config/smithery-yaml
+
+runtime: "container"
+
+build:
+  dockerfile: "Dockerfile"
+  dockerBuildPath: "."
+
+startCommand:
+  type: "http"
+  configSchema:
+    type: object
+    properties:
+      githubToken:
+        type: string
+        title: "GitHub Token"
+        description: "Optional GitHub Personal Access Token for higher API rate limits (5000/hour vs 60/hour without token)"
+        default: ""

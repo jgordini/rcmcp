@@ -499,8 +499,9 @@ def main():
     logger.info("Starting UAB Research Computing Documentation MCP Server (HTTP/SSE)")
     
     # Get configuration from environment variables
+    # Smithery sets PORT to 8081, but we support MCP_SERVER_PORT for local testing
     host = os.environ.get("MCP_SERVER_HOST", "0.0.0.0")
-    port = int(os.environ.get("MCP_SERVER_PORT", "8000"))
+    port = int(os.environ.get("PORT") or os.environ.get("MCP_SERVER_PORT", "8000"))
     
     logger.info(f"Server will listen on http://{host}:{port}")
     logger.info(f"SSE endpoint will be available at http://{host}:{port}/sse")
