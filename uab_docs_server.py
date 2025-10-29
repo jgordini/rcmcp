@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 UAB Research Computing Documentation MCP Server
-
 This MCP server provides access to the University of Alabama at Birmingham's
 Research Computing documentation, allowing AI assistants to search and retrieve
 relevant information about UAB's research computing resources, including:
@@ -9,20 +8,21 @@ relevant information about UAB's research computing resources, including:
 - Getting support and office hours
 - Contributing to documentation
 - Research computing services
-
 Homepage: https://docs.rc.uab.edu
 """
 
 from typing import Any
 import logging
 import httpx
+import os
+import re
 from mcp.server.fastmcp import FastMCP
 
 # Configure logging to stderr (required for STDIO servers)
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler()]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -35,19 +35,42 @@ RC_BASE_URL = "https://rc.uab.edu"
 GITHUB_API_BASE = "https://api.github.com"
 GITHUB_REPO = "uabrc/uabrc.github.io"
 USER_AGENT = "UAB-RC-MCP-Server/1.0"
+GITHUB_TOKEN = os.environ.get(
+    "GITHUB_TOKEN"
+)  # Optional GitHub token for higher rate limits
 
 
-async def make_http_request(url: str, headers: dict[str, str] | None = None) -> dict[str, Any] | str | None:
+def clean_docs_url(url: str) -> str:
+    """
+    Remove /docs/ path segment from documentation URLs.
+    The /docs/ path is part of the GitHub repository structure but not the actual docs site.
+
+    Args:
+        url: URL that may contain /docs/ segment
+
+    Returns:
+        Cleaned URL with /docs/ removed from the path
+    """
+    # Remove /docs/ that appears after the domain in the URL path
+    # Pattern: https://docs.rc.uab.edu/docs/... -> https://docs.rc.uab.edu/...
+    return re.sub(r"(https://docs\.rc\.uab\.edu)/docs/", r"\1/", url)
+
+
+async def make_http_request(
+    url: str, headers: dict[str, str] | None = None
+) -> dict[str, Any] | str | None:
     """Make an HTTP request with proper error handling."""
     default_headers = {"User-Agent": USER_AGENT}
     if headers:
         default_headers.update(headers)
-    
+
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(url, headers=default_headers, timeout=30.0, follow_redirects=True)
+            response = await client.get(
+                url, headers=default_headers, timeout=30.0, follow_redirects=True
+            )
             response.raise_for_status()
-            
+
             # Try to parse as JSON, otherwise return text
             content_type = response.headers.get("content-type", "")
             if "application/json" in content_type:
@@ -66,7 +89,7 @@ async def make_http_request(url: str, headers: dict[str, str] | None = None) -> 
 async def search_documentation(query: str, max_results: int = 5) -> str:
     """
     Search the UAB Research Computing documentation for relevant content.
-    
+
     This tool searches through the documentation repository to find pages
     that match the search query. Useful for finding information about:
     - How to use Cheaha HPC cluster
@@ -74,54 +97,75 @@ async def search_documentation(query: str, max_results: int = 5) -> str:
     - Getting support and office hours
     - Software and tools available
     - Storage and data management
-    
+
     Args:
         query: The search term or phrase to look for in the documentation
         max_results: Maximum number of results to return (default: 5, max: 10)
-    
+
     Returns:
         Formatted search results with titles, URLs, and excerpts
     """
     max_results = min(max_results, 10)  # Cap at 10 results
-    
+
     # Use GitHub API to search the repository
     search_url = f"{GITHUB_API_BASE}/search/code"
-    params = {
-        "q": f"{query} repo:{GITHUB_REPO}",
-        "per_page": max_results
-    }
-    
+    params = {"q": f"{query} repo:{GITHUB_REPO}", "per_page": max_results}
+
     headers = {"Accept": "application/vnd.github.v3+json"}
-    
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(
                 search_url,
                 params=params,
                 headers={**headers, "User-Agent": USER_AGENT},
-                timeout=30.0
+                timeout=30.0,
             )
             response.raise_for_status()
             data = response.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                f"HTTP error searching documentation: {e.response.status_code} - {e.response.text}"
+            )
+            if e.response.status_code == 401:
+                return "Error: GitHub API authentication failed. Set GITHUB_TOKEN environment variable for authenticated access."
+            elif e.response.status_code == 403:
+                return "Error: GitHub API rate limit exceeded. Set GITHUB_TOKEN environment variable for higher rate limits."
+            return f"Error searching documentation: HTTP {e.response.status_code}"
         except Exception as e:
             logger.error(f"Error searching documentation: {e}")
             return f"Error searching documentation: {str(e)}"
-    
+
     if not data.get("items"):
         return f"No results found for '{query}' in the UAB Research Computing documentation."
-    
+
     results = []
     results.append(f"Found {data.get('total_count', 0)} results for '{query}':\n")
-    
+
     for i, item in enumerate(data["items"][:max_results], 1):
         file_name = item.get("name", "Unknown")
         file_path = item.get("path", "")
         html_url = item.get("html_url", "")
-        
+
         # Convert GitHub file path to docs URL
-        # The repo structure typically has docs in specific folders
-        doc_url = f"{DOCS_BASE_URL}/{file_path.replace('.md', '').replace('README', '')}"
-        
+        # Step 1: Remove .md extension
+        clean_path = file_path.replace(".md", "")
+
+        # Step 2: Remove README
+        clean_path = clean_path.replace("README", "")
+
+        # Step 3: Remove leading 'docs/' if present
+        if clean_path.startswith("docs/"):
+            clean_path = clean_path[5:]
+
+        # Step 4: Remove trailing slashes
+        clean_path = clean_path.rstrip("/")
+
+        # Step 5: Build the URL
+        doc_url = f"{DOCS_BASE_URL}/{clean_path}"
+
         result_entry = f"""
 {i}. **{file_name}**
    URL: {doc_url}
@@ -129,9 +173,11 @@ async def search_documentation(query: str, max_results: int = 5) -> str:
    Path: {file_path}
 """
         results.append(result_entry)
-    
-    results.append(f"\n💡 Tip: Use the 'get_documentation_page' tool to retrieve the full content of a specific page.")
-    
+
+    results.append(
+        f"\n💡 Tip: Use the 'get_documentation_page' tool to retrieve the full content of a specific page."
+    )
+
     return "\n".join(results)
 
 
@@ -139,39 +185,73 @@ async def search_documentation(query: str, max_results: int = 5) -> str:
 async def get_documentation_page(page_path: str) -> str:
     """
     Retrieve the full content of a specific documentation page.
-    
-    This tool fetches the complete content of a documentation page from the
-    UAB Research Computing documentation site. Use this after finding a relevant
+
+    This tool fetches the complete markdown content of a documentation page from the
+    UAB Research Computing GitHub repository. Use this after finding a relevant
     page with the search tool.
-    
+
     Args:
-        page_path: The path to the documentation page (e.g., "getting-started/intro" or "storage/data-management")
-                  Can be a relative path from docs.rc.uab.edu or a full URL
-    
+        page_path: The path to the documentation page (e.g., "docs/cheaha/slurm/slurm_tutorial.md" or "cheaha/slurm/slurm_tutorial")
+                  Can be a relative path from the repository root or a GitHub URL
+
     Returns:
-        The full content of the documentation page in markdown format
+        The full markdown content of the documentation page
     """
-    # Handle both full URLs and relative paths
+    # Handle GitHub URLs
     if page_path.startswith("http"):
-        url = page_path
-    else:
-        # Remove leading slash if present
-        page_path = page_path.lstrip("/")
-        url = f"{DOCS_BASE_URL}/{page_path}"
-    
+        # Extract the file path from GitHub URL if provided
+        # Example: https://github.com/uabrc/uabrc.github.io/blob/main/docs/cheaha/slurm/slurm_tutorial.md
+        if "github.com" in page_path:
+            parts = page_path.split("/blob/")
+            if len(parts) > 1:
+                # Get everything after /blob/{branch}/
+                path_parts = parts[1].split("/", 1)
+                if len(path_parts) > 1:
+                    page_path = path_parts[1]
+                else:
+                    return f"Error: Could not extract file path from GitHub URL: {page_path}"
+        else:
+            return f"Error: URL provided is not a GitHub URL: {page_path}"
+
+    # Clean up the path
+    page_path = page_path.lstrip("/")
+
+    # If the path doesn't start with 'docs/', add it
+    if not page_path.startswith("docs/"):
+        page_path = f"docs/{page_path}"
+
+    # If the path doesn't end with .md, add it
+    if not page_path.endswith(".md"):
+        page_path = f"{page_path}.md"
+
+    # Construct the raw GitHub content URL
+    # Use the default branch (usually 'main' or 'master')
+    raw_url = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/{page_path}"
+
+    logger.info(f"Fetching documentation from: {raw_url}")
+
     # Try to fetch the page content
-    content = await make_http_request(url)
-    
+    content = await make_http_request(raw_url)
+
     if content is None:
-        return f"Error: Unable to fetch content from {url}. The page may not exist or there may be a network issue."
-    
+        # Try with 'master' branch if 'main' fails
+        raw_url = f"https://raw.githubusercontent.com/{GITHUB_REPO}/master/{page_path}"
+        logger.info(f"Retrying with master branch: {raw_url}")
+        content = await make_http_request(raw_url)
+
+        if content is None:
+            return f"Error: Unable to fetch content from GitHub. The file may not exist at path: {page_path}"
+
     if isinstance(content, dict):
-        return f"Error: Received JSON instead of page content. URL may be incorrect: {url}"
-    
+        return f"Error: Received JSON instead of markdown content. This shouldn't happen with raw.githubusercontent.com"
+
+    # Generate the docs site URL for reference (without /docs/ in the path)
+    display_path = page_path.replace("docs/", "", 1).replace(".md", "").rstrip("/")
+    docs_site_url = f"{DOCS_BASE_URL}/{display_path}"
+
     # Return the content with metadata
-    result = f"""
-# Documentation Page: {page_path}
-**URL:** {url}
+    result = f"""# Documentation Page: {page_path}
+**URL:** {docs_site_url}
 
 ---
 
@@ -182,7 +262,7 @@ async def get_documentation_page(page_path: str) -> str:
 **Source:** UAB Research Computing Documentation
 **Base URL:** {DOCS_BASE_URL}
 """
-    
+
     return result
 
 
@@ -190,10 +270,10 @@ async def get_documentation_page(page_path: str) -> str:
 async def get_support_info() -> str:
     """
     Get information about how to get support from UAB Research Computing.
-    
+
     This tool provides contact information, office hours, and support channels
     for UAB Research Computing services.
-    
+
     Returns:
         Comprehensive support information including office hours, contact methods,
         and links to support resources
@@ -246,7 +326,7 @@ Services include:
 For the most up-to-date information, always refer to the official documentation
 at {DOCS_BASE_URL}
 """
-    
+
     return support_info
 
 
@@ -254,10 +334,10 @@ at {DOCS_BASE_URL}
 async def list_documentation_sections() -> str:
     """
     List the main sections and categories available in the UAB Research Computing documentation.
-    
+
     This tool provides an overview of the documentation structure to help users
     understand what information is available.
-    
+
     Returns:
         A structured list of main documentation sections and their purposes
     """
@@ -326,7 +406,7 @@ How to contribute to the documentation
 Use the 'search_documentation' tool to find specific topics within these sections,
 or 'get_documentation_page' to retrieve full content from a specific page.
 """
-    
+
     return sections
 
 
@@ -334,10 +414,10 @@ or 'get_documentation_page' to retrieve full content from a specific page.
 async def get_cheaha_quick_start() -> str:
     """
     Get quick start information for accessing and using the Cheaha HPC cluster.
-    
+
     This tool provides essential information for new users getting started with
     the Cheaha high-performance computing cluster at UAB.
-    
+
     Returns:
         Quick start guide with essential information for Cheaha access and basic usage
     """
@@ -409,14 +489,14 @@ The UAB Research Computing team is here to support you:
 
 For the most current information, always refer to {DOCS_BASE_URL}
 """
-    
+
     return quick_start
 
 
 def main():
     """Initialize and run the MCP server."""
     logger.info("Starting UAB Research Computing Documentation MCP Server")
-    mcp.run(transport='stdio')
+    mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
