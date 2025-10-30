@@ -1,6 +1,11 @@
 # Smithery configuration file
 # Documentation: https://smithery.ai/docs/build/project-config/smithery-yaml
 
+name: "uab-rc-docs-mcp-server"
+description: "MCP server for UAB Research Computing documentation"
+license: "MIT"
+icon: "icon.svg"
+
 runtime: "container"
 
 build:

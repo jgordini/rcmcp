@@ -1,0 +1,26 @@
+{
+  "name": "uab-rc-docs-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for UAB Research Computing documentation",
+  "license": "MIT",
+  "main": "uab_docs_server_final.py",
+  "scripts": {
+    "start": "python uab_docs_server_final.py"
+  },
+  "keywords": [
+    "mcp",
+    "server",
+    "documentation", 
+    "uab",
+    "research-computing",
+    "hpc",
+    "cheaha"
+  ],
+  "authors": [
+    "UAB Research Computing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jgordini/rcmcp.git"
+  }
+}
