@@ -31,6 +31,96 @@ USER_AGENT = "UAB-RC-MCP-Server/1.0"
 mcp = FastMCP("uab-research-computing-docs")
 
 
+# Define prompts to help users interact with the server
+@mcp.prompt()
+def search_cheaha_help(topic: str = "getting started") -> str:
+    """
+    Search UAB Research Computing documentation for help with a specific topic.
+    
+    Useful for finding information about Cheaha HPC, SLURM jobs, software,
+    storage, and other research computing topics.
+    
+    Args:
+        topic: The topic to search for (default: "getting started")
+    
+    Returns:
+        A prompt to search the documentation
+    """
+    return f"""Please search the UAB Research Computing documentation for information about '{topic}'. 
+Use the search_documentation tool to find relevant pages, then retrieve the full content 
+of the most relevant page using get_documentation_page."""
+
+
+@mcp.prompt()
+def how_to_submit_slurm_job() -> str:
+    """
+    Get help with submitting SLURM jobs on Cheaha HPC cluster.
+    
+    Provides guidance on creating job scripts, resource requests,
+    and best practices for job submission.
+    
+    Returns:
+        A prompt to guide job submission assistance
+    """
+    return """Please help me understand how to submit a SLURM job on the Cheaha HPC cluster. 
+Search the documentation for 'SLURM tutorial' or 'job submission', then provide 
+step-by-step guidance including how to create a job script, request resources, 
+and submit the job."""
+
+
+@mcp.prompt()
+def find_available_software(software_name: str = "Python") -> str:
+    """
+    Find information about available software on Cheaha HPC.
+    
+    Helps users locate and use specific software packages,
+    including how to load modules and check versions.
+    
+    Args:
+        software_name: The name of the software to find
+    
+    Returns:
+        A prompt to search for software information
+    """
+    return f"""Please help me find information about {software_name} on the Cheaha HPC cluster. 
+Search the documentation for '{software_name}' and provide information about:
+- How to load the module
+- Available versions
+- Usage examples
+- Any special configuration needed"""
+
+
+@mcp.prompt()
+def get_help_and_support() -> str:
+    """
+    Get information about UAB Research Computing support options.
+    
+    Provides office hours, contact information, and support channels.
+    
+    Returns:
+        A prompt to retrieve support information
+    """
+    return """Please provide information about how to get help and support from 
+UAB Research Computing, including office hours, contact methods, and the support portal. 
+Use the get_support_info tool."""
+
+
+@mcp.prompt()
+def cheaha_getting_started() -> str:
+    """
+    Get started with Cheaha HPC cluster.
+    
+    Provides essential information for new users including access,
+    basic usage, and key resources.
+    
+    Returns:
+        A prompt to get quick start information
+    """
+    return """Please provide a quick start guide for using the Cheaha HPC cluster at UAB. 
+Include information about access, basic usage, and key topics a new user should learn. 
+Use the get_cheaha_quick_start tool."""
+
+
 def get_github_token() -> str:
     """Get GitHub token from environment."""
     return os.environ.get("GITHUB_TOKEN", "")
@@ -79,7 +169,13 @@ async def make_http_request(
             return None
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    }
+)
 async def search_documentation(query: str, max_results: int = 5) -> str:
     """
     Search the UAB Research Computing documentation for relevant content.
@@ -168,7 +264,13 @@ async def search_documentation(query: str, max_results: int = 5) -> str:
     return "\n".join(results)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    }
+)
 async def get_documentation_page(page_path: str) -> str:
     """
     Retrieve the full content of a specific documentation page.
@@ -244,7 +346,13 @@ async def get_documentation_page(page_path: str) -> str:
     return result
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    }
+)
 async def get_support_info() -> str:
     """
     Get information about how to get support from UAB Research Computing.
@@ -308,7 +416,13 @@ at {DOCS_BASE_URL}
     return support_info
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    }
+)
 async def list_documentation_sections() -> str:
     """
     List the main sections and categories available in the UAB Research Computing documentation.
@@ -388,7 +502,13 @@ or 'get_documentation_page' to retrieve full content from a specific page.
     return sections
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+    }
+)
 async def get_cheaha_quick_start() -> str:
     """
     Get quick start information for accessing and using the Cheaha HPC cluster.
