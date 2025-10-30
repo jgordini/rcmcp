@@ -407,63 +407,85 @@ async def get_cheaha_quick_start() -> str:
 Cheaha is the University of Alabama at Birmingham's high-performance computing (HPC)
 cluster, providing powerful computational resources for research.
 
-## Accessing Cheaha
+## Getting Started
 
-### Web Portal
-The easiest way to access Cheaha is through the web portal:
+### 1. Account Creation
+- Visit the account creation page to set up your Cheaha account
+- All researchers receive 5 TB of individual storage
+
+### 2. Access Methods
+
+**Primary Access - Web Portal (Recommended)**
+The easiest way to access Cheaha is through the Open OnDemand web portal:
 **{RC_BASE_URL}**
 
-### SSH Access
+Requirements:
+- UAB credentials 
+- Duo 2-Factor Authentication
+
+**Alternative - SSH Access**
 For command-line access:
 ```bash
 ssh YOUR_BLAZERID@cheaha.rc.uab.edu
 ```
+(Connect to port 22)
 
-## Key Resources
+### 3. Interactive Applications Available
+Once logged in through the web portal, you can access:
+- **File Browser** - Manage your files
+- **Remote Desktop** - Full desktop environment
+- **Jupyter Notebook/Lab** - Interactive computing
+- **RStudio** - R development environment
+- **MATLAB** - Mathematical computing
+
+## Important Usage Guidelines
+
+⚠️ **Critical Rule**: Do not run compute-intensive tasks on login nodes
+- Always use SLURM job scheduler for computational work
+- Choose appropriate partition based on your needs
+
+## Compute Partitions
+
+### GPU Processing
+- **pascalnodes** - Pascal GPU nodes
+- **amperenodes** - Ampere GPU nodes
+
+### General Purpose
+- **amd-hdr100** - General computing
+
+### Time-based Partitions
+- **express** - Short jobs
+- **short** - Short-term computing
+- **medium** - Medium-term jobs  
+- **long** - Long-running jobs
+
+### Specialized
+- **largemem** - High memory requirements
+
+## Software Access
+
+- Software available through the **module system**
+- **Anaconda recommended** for package management
+- Need help with software? Submit a support ticket
+
+## Getting Support
 
 ### Documentation Home
 {DOCS_BASE_URL}
 
-### Getting Support
+### Support Channels
 - Office Hours: {DOCS_BASE_URL}/help/office_hours
 - Support Portal: {DOCS_BASE_URL}/help/support
-
-### Essential Topics to Explore
-
-1. **Account Setup**
-   - Learn about access requirements and account creation
-   - Search documentation for: "account setup"
-
-2. **Job Submission with SLURM**
-   - Understand how to submit computational jobs
-   - Search documentation for: "SLURM tutorial" or "job submission"
-
-3. **Software Modules**
-   - Learn how to load software with the module system
-   - Search documentation for: "modules" or "software"
-
-4. **Storage Systems**
-   - Understand available storage options and quotas
-   - Search documentation for: "storage" or "data management"
-
-5. **Best Practices**
-   - Learn how to use resources efficiently
-   - Search documentation for: "best practices"
 
 ## Next Steps
 
 Use the MCP tools to explore specific topics:
-- `search_documentation("slurm tutorial")` - Learn about job submission
-- `search_documentation("python")` - Find Python-related resources
-- `search_documentation("gpu")` - Information about GPU computing
-- `list_documentation_sections()` - See all available topics
+- `search_documentation("slurm tutorial")` - Learn job submission
+- `search_documentation("modules")` - Software module system
+- `search_documentation("partitions")` - Compute node details
+- `search_documentation("storage")` - Data management
 
-## Need Help?
-
-The UAB Research Computing team is here to support you:
-- Check office hours for live assistance
-- Submit a support ticket for technical issues
-- Review the documentation for guides and tutorials
+**Quick Tip**: Always submit computational jobs through SLURM to utilize compute nodes effectively.
 
 For the most current information, always refer to {DOCS_BASE_URL}
 """
