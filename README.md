@@ -1,4 +1,5 @@
 # UAB Research Computing Documentation MCP Server
+[![smithery badge](https://smithery.ai/badge/@jgordini/rcmcp)](https://smithery.ai/server/@jgordini/rcmcp)
 
 An MCP (Model Context Protocol) server that provides AI assistants with access to the University of Alabama at Birmingham's Research Computing documentation.
 
@@ -67,6 +68,14 @@ get_cheaha_quick_start()
 ```
 
 ## Installation
+
+### Installing via Smithery
+
+To install rcmcp automatically via [Smithery](https://smithery.ai/server/@jgordini/rcmcp):
+
+```bash
+npx -y @smithery/cli install @jgordini/rcmcp
+```
 
 ### Prerequisites
 
