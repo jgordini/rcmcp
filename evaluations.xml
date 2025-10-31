@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evaluation>
+  <qa_pair>
+    <question>What is the maximum wall time limit for jobs submitted to the 'express' partition on Cheaha, and what happens if a job exceeds this limit?</question>
+    <answer>2 hours</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>When using SLURM on Cheaha, what command should you use to check the current status of your submitted jobs, and what flag would show you jobs from all users in the queue?</question>
+    <answer>squeue</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>What is the recommended method for managing Python packages and environments on Cheaha according to the documentation, and why is it preferred over using system Python?</question>
+    <answer>Anaconda</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>What is the default individual storage quota allocation that all UAB researchers receive when they create a Cheaha account?</question>
+    <answer>5 TB</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>If you need to transfer large datasets (multiple terabytes) to or from Cheaha, what is the recommended tool according to UAB Research Computing documentation, and what makes it better than standard tools like scp or rsync?</question>
+    <answer>Globus</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>What authentication method is required to access the Cheaha web portal (Open OnDemand), in addition to your UAB credentials?</question>
+    <answer>Duo 2-Factor Authentication</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>According to the documentation, what critical rule must users follow regarding where they run compute-intensive tasks on Cheaha, and what is the proper way to run such tasks?</question>
+    <answer>SLURM job scheduler</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>What GPU partition name should you use when submitting a job that requires NVIDIA Ampere architecture GPUs on Cheaha?</question>
+    <answer>amperenodes</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>If you are leaving UAB and want to know what happens to your Cheaha account and data, what is the first step you should take according to the account management documentation?</question>
+    <answer>contact Research Computing</answer>
+  </qa_pair>
+  
+  <qa_pair>
+    <question>What is the primary web portal URL for accessing Cheaha's Open OnDemand interface where you can launch interactive applications like Jupyter, RStudio, and MATLAB?</question>
+    <answer>https://rc.uab.edu</answer>
+  </qa_pair>
+</evaluation>

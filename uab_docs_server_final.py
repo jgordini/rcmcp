@@ -9,7 +9,7 @@ import httpx
 import os
 import re
 import uvicorn
-from typing import Any
+from typing import Any, Annotated
 from mcp.server.fastmcp import FastMCP
 from starlette.middleware.cors import CORSMiddleware
 
@@ -26,6 +26,9 @@ RC_BASE_URL = "https://rc.uab.edu"
 GITHUB_API_BASE = "https://api.github.com"
 GITHUB_REPO = "uabrc/uabrc.github.io"
 USER_AGENT = "UAB-RC-MCP-Server/1.0"
+
+# Content length limit (approximately 25,000 tokens ≈ 100,000 characters)
+CHARACTER_LIMIT = 100000
 
 # Initialize FastMCP server
 mcp = FastMCP("uab-research-computing-docs")
@@ -140,6 +143,26 @@ def clean_docs_url(url: str) -> str:
     return re.sub(r"(https://docs\.rc\.uab\.edu)/docs/", r"\1/", url)
 
 
+def truncate_content(content: str, limit: int = CHARACTER_LIMIT) -> str:
+    """
+    Truncate content if it exceeds the character limit.
+    
+    Args:
+        content: The content to potentially truncate
+        limit: Maximum character count (default: CHARACTER_LIMIT)
+    
+    Returns:
+        Truncated content with notice if truncated, otherwise original content
+    """
+    if len(content) <= limit:
+        return content
+    
+    truncated = content[:limit]
+    truncation_notice = f"\n\n---\n\n⚠️ **Content Truncated**: This response was truncated at {limit:,} characters (approximately {limit//4:,} tokens) to stay within reasonable limits. The full content may be larger. Consider requesting specific sections if you need more detail.\n"
+    
+    return truncated + truncation_notice
+
+
 async def make_http_request(
     url: str, headers: dict[str, str] | None = None
 ) -> dict[str, Any] | str | None:
@@ -176,7 +199,20 @@ async def make_http_request(
         "idempotentHint": True,
     }
 )
-async def search_documentation(query: str, max_results: int = 5) -> str:
+async def search_documentation(
+    query: Annotated[
+        str,
+        "The search term or phrase to look for in the UAB Research Computing documentation. "
+        "Can include keywords related to Cheaha HPC, SLURM, software, storage, or any research computing topic. "
+        "Examples: 'slurm tutorial', 'python modules', 'data transfer', 'gpu nodes'"
+    ],
+    max_results: Annotated[
+        int,
+        "Maximum number of search results to return. "
+        "Valid range: 1-10. Default is 5. "
+        "Higher values provide more options but may include less relevant results."
+    ] = 5
+) -> str:
     """
     Search the UAB Research Computing documentation for relevant content.
 
@@ -261,7 +297,8 @@ async def search_documentation(query: str, max_results: int = 5) -> str:
         f"\n💡 Tip: Use the 'get_documentation_page' tool to retrieve the full content of a specific page."
     )
 
-    return "\n".join(results)
+    result_text = "\n".join(results)
+    return truncate_content(result_text)
 
 
 @mcp.tool(
@@ -271,7 +308,18 @@ async def search_documentation(query: str, max_results: int = 5) -> str:
         "idempotentHint": True,
     }
 )
-async def get_documentation_page(page_path: str) -> str:
+async def get_documentation_page(
+    page_path: Annotated[
+        str,
+        "The path to the documentation page to retrieve. "
+        "Accepts multiple formats: "
+        "(1) Repository path: 'docs/cheaha/slurm/slurm_tutorial.md', "
+        "(2) Short path: 'cheaha/slurm/slurm_tutorial', "
+        "(3) GitHub URL: 'https://github.com/uabrc/uabrc.github.io/blob/main/docs/...'. "
+        "The .md extension and docs/ prefix are optional and will be added automatically if needed. "
+        "Example paths: 'cheaha/getting_started', 'docs/help/support.md', 'storage/quota'"
+    ]
+) -> str:
     """
     Retrieve the full content of a specific documentation page.
 
@@ -343,7 +391,7 @@ async def get_documentation_page(page_path: str) -> str:
 **Base URL:** {DOCS_BASE_URL}
 """
 
-    return result
+    return truncate_content(result)
 
 
 @mcp.tool(
@@ -358,7 +406,7 @@ async def get_support_info() -> str:
     Get information about how to get support from UAB Research Computing.
 
     This tool provides contact information, office hours, and support channels
-    for UAB Research Computing services.
+    for UAB Research Computing services. No parameters required.
 
     Returns:
         Comprehensive support information including office hours, contact methods,
@@ -428,7 +476,7 @@ async def list_documentation_sections() -> str:
     List the main sections and categories available in the UAB Research Computing documentation.
 
     This tool provides an overview of the documentation structure to help users
-    understand what information is available.
+    understand what information is available. No parameters required.
 
     Returns:
         A structured list of main documentation sections and their purposes
@@ -514,7 +562,7 @@ async def get_cheaha_quick_start() -> str:
     Get quick start information for accessing and using the Cheaha HPC cluster.
 
     This tool provides essential information for new users getting started with
-    the Cheaha high-performance computing cluster at UAB.
+    the Cheaha high-performance computing cluster at UAB. No parameters required.
 
     Returns:
         Quick start guide with essential information for Cheaha access and basic usage
