@@ -1,0 +1,8 @@
+name = "uab-rc-docs-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-02-07"
+compatibility_flags = ["nodejs_compat"]
+
+# This worker implements an MCP endpoint at /mcp using Streamable HTTP.
+# For GitHub search rate limits, set a secret:
+#   wrangler secret put GITHUB_TOKEN

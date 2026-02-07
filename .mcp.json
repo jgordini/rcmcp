@@ -1,0 +1,1 @@
+{"mcpServers":{"uab-rc-docs":{"command":"uv","args":["run","uab_docs_server.py"]},"MCP_DOCKER":{"command":"docker","args":["mcp","gateway","run"],"type":"stdio"}}}
