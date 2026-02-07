@@ -662,32 +662,32 @@ For the most current information, always refer to {DOCS_BASE_URL}
 
 
 def main():
-    """Initialize and run the MCP server with streamable HTTP transport."""
+    """Initialize and run the MCP server. Supports stdio and HTTP transports."""
     logger.info("Starting UAB Research Computing Documentation MCP Server")
-    logger.info("Using FastMCP native streamable HTTP")
-    
-    # Create streamable HTTP app
-    app = mcp.streamable_http_app()
-    
-    # Add CORS middleware for browser-based clients
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["*"],
-        expose_headers=["mcp-session-id", "mcp-protocol-version"],
-        max_age=86400,
-    )
-    
-    # Get port from environment (Smithery sets PORT=8081)
-    port = int(os.environ.get("PORT", "8081"))
-    
-    logger.info(f"Server will listen on http://0.0.0.0:{port}")
-    logger.info("MCP endpoint will be available at http://0.0.0.0:{port}/mcp")
-    
-    # Run with uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+
+    # MCP_TRANSPORT is set by Docker MCP gateway; default to HTTP for Smithery
+    transport = os.environ.get("MCP_TRANSPORT", "streamable-http").lower()
+
+    if transport == "stdio":
+        logger.info("Using stdio transport")
+        mcp.run(transport="stdio")
+    else:
+        logger.info("Using streamable HTTP transport")
+        app = mcp.streamable_http_app()
+
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=["mcp-session-id", "mcp-protocol-version"],
+            max_age=86400,
+        )
+
+        port = int(os.environ.get("PORT", "8081"))
+        logger.info(f"Server will listen on http://0.0.0.0:{port}")
+        uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
 
 if __name__ == "__main__":

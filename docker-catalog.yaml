@@ -1,0 +1,43 @@
+name: dev-servers
+displayName: dev-servers
+registry:
+  uab-rc-docs:
+    title: UAB Research Computing Docs
+    description: >-
+      MCP server for UAB Research Computing documentation. Search and retrieve
+      documentation about the Cheaha HPC cluster, SLURM job submission, software
+      modules, storage, and research computing support at UAB.
+    type: server
+    image: uab-rc-docs-mcp:latest
+    command:
+      - python
+      - uab_docs_server_final.py
+    env:
+      - name: MCP_TRANSPORT
+        value: stdio
+    metadata:
+      category: documentation
+      license: MIT
+      owner: uab-research-computing
+      tags:
+        - hpc
+        - documentation
+        - research-computing
+        - cheaha
+        - slurm
+    tools:
+      - name: search_documentation
+        description: >-
+          Search the UAB Research Computing documentation for relevant content.
+      - name: get_documentation_page
+        description: >-
+          Retrieve the full content of a specific documentation page.
+      - name: get_support_info
+        description: >-
+          Get information about how to get support from UAB Research Computing.
+      - name: list_documentation_sections
+        description: >-
+          List the main sections and categories available in the documentation.
+      - name: get_cheaha_quick_start
+        description: >-
+          Get quick start information for accessing and using the Cheaha HPC cluster.
