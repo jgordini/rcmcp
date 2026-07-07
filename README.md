@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/jgordini-rcmcp-badge.png)](https://mseep.ai/app/jgordini-rcmcp)
+
 # UAB Research Computing Documentation MCP Server
 
 An MCP (Model Context Protocol) server that provides AI assistants with access to the University of Alabama at Birmingham's Research Computing documentation.
