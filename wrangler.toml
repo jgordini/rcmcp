@@ -1,0 +1,7 @@
+name = "uab-rc-docs-mcp"
+main = "cloudflare/src/index.ts"
+compatibility_date = "2026-02-07"
+compatibility_flags = ["nodejs_compat"]
+
+# Root-level configuration keeps Cloudflare Git builds working when the build
+# service runs from the repository root instead of the cloudflare directory.

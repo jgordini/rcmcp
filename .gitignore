@@ -1,1 +1,6 @@
 .aider*
+.DS_Store
+--mcpServers*
+node_modules/
+__pycache__/
+*.pyc

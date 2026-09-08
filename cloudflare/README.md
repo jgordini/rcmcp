@@ -15,21 +15,38 @@ It exposes an MCP endpoint at:
 
 ```bash
 cd /Users/jeremy/repos/rcmcp/cloudflare
-npm install
+pnpm install
 ```
 
 ## Local Dev
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Wrangler will print the local URL. The MCP endpoint is `/mcp`.
 
+## Test
+
+With the local server running, use a second terminal:
+
+```bash
+pnpm test:mcp
+```
+
+To test a deployed endpoint:
+
+```bash
+MCP_URL=https://example.workers.dev/mcp pnpm test:mcp
+```
+
+The test sends Glama's browser origin by default. Set `MCP_ORIGIN` to test a
+different allowed browser client.
+
 ## Deploy
 
 ```bash
-npm run deploy
+pnpm deploy
 ```
 
 ## Optional: GitHub Token (Recommended)
@@ -47,4 +64,3 @@ wrangler secret put GITHUB_TOKEN
 
 - Tools are implemented in `src/index.ts`.
 - Responses are truncated at ~100k characters to avoid overly large payloads.
-
