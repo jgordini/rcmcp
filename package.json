@@ -4,8 +4,12 @@
   "description": "MCP server for UAB Research Computing documentation",
   "license": "MIT",
   "main": "uab_docs_server_final.py",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
   "scripts": {
-    "start": "python uab_docs_server_final.py"
+    "start": "python uab_docs_server_final.py",
+    "check:cloudflare": "tsc -p cloudflare/tsconfig.json --noEmit",
+    "deploy:cloudflare": "wrangler deploy"
   },
   "keywords": [
     "mcp",
@@ -22,5 +26,15 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/jgordini/rcmcp.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.0.0",
+    "agents": "^0.22.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260101.0",
+    "typescript": "^5.6.3",
+    "wrangler": "^4.8.0"
   }
 }
